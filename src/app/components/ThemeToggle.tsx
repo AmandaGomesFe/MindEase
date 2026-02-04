@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Moon, Sun } from 'lucide-react';
+import { usePreferences } from '../context/PreferencesContext';
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
+  const { preferences, updatePreference } = usePreferences();
 
   const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark');
+    const next = preferences.theme === 'dark' ? 'light' : 'dark';
+    updatePreference('theme', next);
   };
 
   return (
@@ -22,9 +23,9 @@ export function ThemeToggle() {
         transition-all
         focus:outline-none focus:ring-4 focus:ring-ring/30
       "
-      aria-label={isDark ? 'Ativar modo claro' : 'Ativar modo escuro'}
+      aria-label={preferences.theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
     >
-      {isDark ? (
+      {preferences.theme === 'dark' ? (
         <Sun className="w-5 h-5 text-foreground" aria-hidden="true" />
       ) : (
         <Moon className="w-5 h-5 text-foreground" aria-hidden="true" />

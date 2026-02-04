@@ -15,6 +15,10 @@
   
   /* Azul suave - cor primária */
   --primary: #5B7C99;
+  /* RGB fallback for opacity helpers (R, G, B) */
+  /* legacy RGB variables removed in favor of hex theme variables
+    (use --primary, --success, --background, --card, --secondary, --accent)
+    Opacity helpers now use color-mix() so hex values can be author-friendly. */
   --primary-foreground: #FFFFFF;
   --primary-hover: #4A6A85;
   --primary-light: #E8EDF2;
@@ -64,6 +68,26 @@
   --shadow-sm: 0 2px 8px rgba(43, 54, 73, 0.04);
   --shadow-md: 0 4px 16px rgba(43, 54, 73, 0.08);
   --shadow-lg: 0 8px 24px rgba(43, 54, 73, 0.12);
+  /* Sidebar width (can be overridden per spacing level in media queries) */
+  --mindease-sidebar-width: 20rem; /* default ~320px */
+
+  /* Derived opacity variables (centralized) - edit base hex variables above
+     and these will reflect changes automatically. Keeps theme maintenance in one place. */
+  --primary-10: color-mix(in srgb, var(--primary) 10%, transparent);
+  --primary-20: color-mix(in srgb, var(--primary) 20%, transparent);
+  --primary-30: color-mix(in srgb, var(--primary) 30%, transparent);
+
+  --success-10: color-mix(in srgb, var(--success) 10%, transparent);
+  --success-20: color-mix(in srgb, var(--success) 20%, transparent);
+
+  --secondary-50: color-mix(in srgb, var(--secondary) 50%, transparent);
+  --background-80: color-mix(in srgb, var(--background) 80%, transparent);
+
+  --accent-20: color-mix(in srgb, var(--accent) 20%, transparent);
+  --accent-30: color-mix(in srgb, var(--accent) 30%, transparent);
+
+  --white-20: color-mix(in srgb, #ffffff 20%, transparent);
+  --black-20: color-mix(in srgb, #000000 20%, transparent);
 }
 
 .dark {
@@ -83,6 +107,10 @@
   --accent-foreground: #1F2937;
   --accent-hover: #C4B9D9;
   --accent-light: #374151;
+
+  /* ensure primary rgb present in dark mode too */
+  /* dark-mode rgb vars removed - dark theme relies on the same hex variables
+    overridden above (.dark block and contrast blocks) */
   
   --muted: #374151;
   --muted-foreground: #9CA3AF;
@@ -105,6 +133,9 @@
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
+
+/* Accent RGB for opacity helpers in light/dark */
+/* removed rgb shorthand for accent in dark */
 
 @theme inline {
   --color-background: var(--background);
@@ -216,3 +247,233 @@
     }
   }
 }
+
+/* MindEase preference-driven overrides (consumed from PreferencesContext)
+   - data-mindease-contrast: 1 | 2 | 3
+   - data-mindease-spacing: 1 | 2 | 3
+   - data-mindease-dyslexia: true | false
+   - .mindease-reduce-animations: class to cut animations
+*/
+
+/* Contrast levels split into light and dark variants to avoid theme conflicts */
+:root:not(.dark)[data-mindease-contrast='1'] {
+  /* Light - Suave */
+  --background: #FBFBFD;
+  --foreground: #444a52;
+  --card: #FFFFFF;
+  --card-foreground: #778291;
+  --muted: #F1F5F9;
+  --muted-foreground: #6B7280;
+  --border: #E6E9EE;
+  --primary: #9eb8cf;
+  --accent: #c6bfd7;
+}
+.dark[data-mindease-contrast='1'] {
+  /* Dark - Suave (muted foreground for lower perceived contrast) */
+  --background: #1F2937;
+  --foreground: #D1D5DB;
+  --card: #263244;
+  --card-foreground: #D1D5DB;
+  --muted: #2b3649;
+  --muted-foreground: #9CA3AF;
+  --border: #374151;
+}
+
+:root:not(.dark)[data-mindease-contrast='2'] {
+  /* Light - Padrão */
+  --background: #F8F9FB;
+  --foreground: #2B3649;
+  --card: #FFFFFF;
+  --card-foreground: #2B3649;
+  --muted: #E5E8EC;
+  --muted-foreground: #6B7280;
+  --border: #D1D5DB;
+  --color-accent-rgb: 155,143,181;
+}
+.dark[data-mindease-contrast='2'] {
+  /* Dark - Padrão */
+  --background: #1F2937;
+  --foreground: #E5E7EB;
+  --card: #2D3748;
+  --card-foreground: #E5E7EB;
+  --muted: #374151;
+  --muted-foreground: #9CA3AF;
+  --border: #4B5563;
+}
+
+:root:not(.dark)[data-mindease-contrast='3'] {
+  /* Light - Alto contraste (claro) */
+  --background: #FFFFFF;
+  --foreground: #071428;
+  --card: #FFFFFF;
+  --card-foreground: #071428;
+  --muted: #EEF6FB;
+  --muted-foreground: #1F2937;
+  --border: #0F1724;
+  --primary: #0F1724;
+  --primary-light: #FFFFFF;
+  --accent: #0F1724;
+  --accent-light: #FFFFFF;
+  --success: #000000;
+}
+.dark[data-mindease-contrast='3'] {
+  /* Dark - Alto contraste (escuro) */
+  --background: #050617;
+  --foreground: #FFFFFF;
+  --card: #0B1220;
+  --card-foreground: #FFFFFF;
+  --muted: #0F1724;
+  --muted-foreground: #CBD5E1;
+  --border: #94A3B8;
+  --primary: #9FB8D0;
+  --color-primary-rgb: 159,184,208;
+}
+
+:root[data-mindease-spacing='1'] {
+  --spacing-xs: 0.375rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+}
+
+:root[data-mindease-spacing='2'] {
+  --spacing-xs: 0.385rem;
+  --spacing-sm: 0.85rem;
+  --spacing-md: 1.1rem;
+  --spacing-lg: 1.75rem;
+  --spacing-xl: 2.25rem;
+  --spacing-2xl: 3.25rem;
+}
+
+:root[data-mindease-spacing='3'] {
+  --spacing-xs: 0.4rem;
+  --spacing-sm: 0.95rem;
+  --spacing-md: 1.2rem;
+  --spacing-lg: 1.95rem;
+  --spacing-xl: 2.5rem;
+  --spacing-2xl: 3.5rem;
+}
+
+/* Dyslexia-specific typography adjustments (when data attribute is true) */
+:root[data-mindease-dyslexia='true'] {
+  --font-family-base: "Inter", "OpenDyslexic", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue";
+  --letter-spacing: 0.02em;
+  --line-height-relaxed: 1.8;
+}
+
+body {
+  font-family: var(--font-family-base, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue");
+  letter-spacing: var(--letter-spacing, normal);
+}
+
+/* Strong reduction of animations when the class is present (applied by provider) */
+.mindease-reduce-animations *, .mindease-reduce-animations *::before, .mindease-reduce-animations *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Quick compatibility layer: map common Tailwind spacing utilities to our CSS variables
+   This lets data-mindease-spacing affect many existing components that still use utility classes.
+   These mappings are intentionally conservative and can be expanded over time.
+*/
+.mb-0 { margin-bottom: 0 !important; }
+.mb-1 { margin-bottom: var(--spacing-xs) !important; }
+.mb-2 { margin-bottom: var(--spacing-sm) !important; }
+.mb-3 { margin-bottom: var(--spacing-md) !important; }
+.mb-4 { margin-bottom: var(--spacing-md) !important; }
+.mb-6 { margin-bottom: var(--spacing-lg) !important; }
+.mb-8 { margin-bottom: var(--spacing-xl) !important; }
+.mb-0\.5 { margin-bottom: calc(var(--spacing-xs) / 2) !important; }
+
+.mt-1 { margin-top: var(--spacing-xs) !important; }
+.mt-2 { margin-top: var(--spacing-sm) !important; }
+.mt-3 { margin-top: var(--spacing-md) !important; }
+.mt-4 { margin-top: var(--spacing-md) !important; }
+
+.p-1 { padding: var(--spacing-xs) !important; }
+.p-2 { padding: var(--spacing-sm) !important; }
+.p-3 { padding: var(--spacing-md) !important; }
+.p-4 { padding: var(--spacing-md) !important; }
+.p-5 { padding: var(--spacing-lg) !important; }
+.p-6 { padding: var(--spacing-xl) !important; }
+
+.px-4 { padding-left: var(--spacing-md) !important; padding-right: var(--spacing-md) !important; }
+.py-4 { padding-top: var(--spacing-md) !important; padding-bottom: var(--spacing-md) !important; }
+.pt-4 { padding-top: var(--spacing-md) !important; }
+.pb-6 { padding-bottom: var(--spacing-lg) !important; }
+
+.gap-1 { gap: var(--spacing-xs) !important; }
+.gap-2 { gap: var(--spacing-sm) !important; }
+.gap-3 { gap: var(--spacing-md) !important; }
+.gap-4 { gap: var(--spacing-md) !important; }
+.gap-6 { gap: var(--spacing-lg) !important; }
+
+/* Color compatibility layer: map common utility classes to theme variables
+  This helps components that still use utility classes (e.g., bg-card, border-border)
+  to respond to contrast/spacing/theme changes without touching every component. */
+.bg-card { background-color: var(--card) !important; }
+.bg-background { background-color: var(--background) !important; }
+.bg-primary { background-color: var(--primary) !important; }
+.bg-primary-light { background-color: var(--primary-light) !important; }
+.bg-accent { background-color: var(--accent) !important; }
+.bg-muted { background-color: var(--muted) !important; }
+
+.bg-border { background-color: var(--border) !important; }
+.bg-secondary { background-color: var(--secondary) !important; }
+
+.text-foreground { color: var(--foreground) !important; }
+.text-muted-foreground { color: var(--muted-foreground) !important; }
+.text-primary { color: var(--primary) !important; }
+.text-accent { color: var(--accent) !important; }
+
+.border-border { border-color: var(--border) !important; }
+.border-primary\/30 { border-color: var(--primary-30) !important; }
+.border-primary\/20 { border-color: var(--primary-20) !important; }
+
+/* Helpers for common opacity utilities (only for primary right now) */
+.bg-primary\/10 { background-color: var(--primary-10) !important; }
+.bg-primary\/20 { background-color: var(--primary-20) !important; }
+.bg-primary\/30 { background-color: var(--primary-30) !important; }
+
+/* Success / Secondary / background helpers */
+
+.bg-success { background-color: var(--success) !important; }
+.bg-success\/10 { background-color: var(--success-10) !important; }
+.bg-success\/20 { background-color: var(--success-20) !important; }
+.border-success\/20 { border-color: var(--success-20) !important; }
+
+.bg-secondary\/50 { background-color: var(--secondary-50) !important; }
+.bg-background\/80 { background-color: var(--background-80) !important; }
+
+/* Common white/black opacity helpers */
+.bg-white { background-color: #FFFFFF !important; }
+.border-white { border-color: #FFFFFF !important; }
+.bg-white\/20 { background-color: var(--white-20) !important; }
+.bg-black\/20 { background-color: var(--black-20) !important; }
+
+/* Accent helpers */
+.bg-accent-light { background-color: var(--accent-light) !important; }
+.border-accent\/30 { border-color: var(--accent-30) !important; }
+.bg-accent\/20 { background-color: var(--accent-20) !important; }
+
+
+@media (min-width: 1024px) {
+  /* Sidebar width per spacing level */
+  :root[data-mindease-spacing='1'] { --mindease-sidebar-width: 18rem; }
+  :root[data-mindease-spacing='2'] { --mindease-sidebar-width: 20rem; }
+  :root[data-mindease-spacing='3'] { --mindease-sidebar-width: 22rem; }
+
+  /* Apply width to the desktop sidebar nav and offset main content */
+  nav[aria-label="Menu de navegação principal"] {
+    width: var(--mindease-sidebar-width) !important;
+  }
+
+  .main-with-sidebar {
+    margin-left: var(--mindease-sidebar-width) !important;
+    transition: margin-left 220ms ease-in-out;
+  }
+}
+

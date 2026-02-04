@@ -41,7 +41,7 @@ export default function App() {
     return (
       <>
         <NavigationMenu currentView={currentView} onViewChange={setCurrentView} />
-        <div className="lg:ml-80">
+  <div className="main-with-sidebar">
           <ThemeToggle />
           <ProfilePage />
         </div>
@@ -54,7 +54,7 @@ export default function App() {
     return (
       <>
         <NavigationMenu currentView={currentView} onViewChange={setCurrentView} />
-        <div className="lg:ml-80">
+  <div className="main-with-sidebar">
           <ThemeToggle />
           <FocusTimerPage />
         </div>
@@ -67,7 +67,7 @@ export default function App() {
     return (
       <>
         <NavigationMenu currentView={currentView} onViewChange={setCurrentView} />
-        <div className="lg:ml-80">
+  <div className="main-with-sidebar">
           <ThemeToggle />
           <TaskBoard />
         </div>
@@ -80,7 +80,7 @@ export default function App() {
     return (
       <>
         <NavigationMenu currentView={currentView} onViewChange={setCurrentView} />
-        <div className="lg:ml-80">
+  <div className="main-with-sidebar">
           <ThemeToggle />
           <CognitivePanel />
         </div>
@@ -92,7 +92,7 @@ export default function App() {
   return (
     <>
       <NavigationMenu currentView={currentView} onViewChange={setCurrentView} />
-      <div className="lg:ml-80">
+  <div className="main-with-sidebar">
         <div className="min-h-screen bg-background">
           <ThemeToggle />
           

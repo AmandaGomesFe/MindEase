@@ -18,85 +18,47 @@ import { NeedToggle } from './NeedToggle';
 import { VisualFeedback } from './VisualFeedback';
 import { Badge } from './Badge';
 import { Input } from './Input';
-
-interface UserPreferences {
-  name: string;
-  focusModeDefault: boolean;
-  complexityLevel: number;
-  contrastLevel: number;
-  spacingLevel: number;
-  fontSize: number;
-  animationsEnabled: boolean;
-  needs: {
-    adhd: boolean;
-    autism: boolean;
-    anxiety: boolean;
-    dyslexia: boolean;
-  };
-}
-
-const defaultPreferences: UserPreferences = {
-  name: '',
-  focusModeDefault: false,
-  complexityLevel: 2,
-  contrastLevel: 1,
-  spacingLevel: 2,
-  fontSize: 18,
-  animationsEnabled: true,
-  needs: {
-    adhd: false,
-    autism: false,
-    anxiety: false,
-    dyslexia: false
-  }
-};
+import { usePreferences } from '../context/PreferencesContext';
 
 export function ProfilePage() {
-  const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
+  const { preferences, updatePreference, updateNeed, resetPreferences, applyPreset } = usePreferences();
   const [hasChanges, setHasChanges] = useState(false);
   const [feedback, setFeedback] = useState({ show: false, message: '' });
-
-  // Carregar preferências do localStorage ao iniciar
-  useEffect(() => {
-    const saved = localStorage.getItem('mindease-preferences');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setPreferences(parsed);
-      } catch (e) {
-        console.error('Erro ao carregar preferências:', e);
-      }
-    }
-  }, []);
 
   const showFeedback = (message: string) => {
     setFeedback({ show: true, message });
   };
 
-  const updatePreference = <K extends keyof UserPreferences>(
-    key: K, 
-    value: UserPreferences[K]
-  ) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
+  const handleUpdate = <K extends keyof typeof preferences>(key: K, value: typeof preferences[K]) => {
+    updatePreference(key as any, value as any);
     setHasChanges(true);
   };
 
-  const updateNeed = (need: keyof UserPreferences['needs'], value: boolean) => {
-    setPreferences(prev => ({
-      ...prev,
-      needs: { ...prev.needs, [need]: value }
-    }));
+  const handleNeed = (need: keyof typeof preferences.needs, value: boolean) => {
+    updateNeed(need, value);
     setHasChanges(true);
+    if (value) {
+      // apply preset automatically when a need is activated
+      if (need === 'adhd') applyPreset('tdah');
+      if (need === 'autism') applyPreset('tea');
+      if (need === 'anxiety') applyPreset('anxiety');
+      if (need === 'dyslexia') applyPreset('dyslexia');
+    }
   };
 
   const savePreferences = () => {
-    localStorage.setItem('mindease-preferences', JSON.stringify(preferences));
+    try {
+      // PreferencesProvider already persists, but keep explicit write to be safe
+      localStorage.setItem('mindease-preferences', JSON.stringify(preferences));
+    } catch (e) {
+      // ignore
+    }
     setHasChanges(false);
     showFeedback('Suas preferências foram salvas com sucesso! ✨');
   };
 
   const resetToDefaults = () => {
-    setPreferences(defaultPreferences);
+    resetPreferences();
     setHasChanges(true);
     showFeedback('Preferências resetadas para os valores padrão');
   };
@@ -147,7 +109,7 @@ export function ProfilePage() {
               description="Use o nome que te deixa mais confortável"
               placeholder="Digite seu nome..."
               value={preferences.name}
-              onChange={(e) => updatePreference('name', e.target.value)}
+              onChange={(e) => handleUpdate('name', e.target.value)}
               icon={Heart}
             />
           </ProfileSection>
@@ -163,28 +125,28 @@ export function ProfilePage() {
                 label="TDAH"
                 description="Ativar recursos para foco e redução de distrações"
                 checked={preferences.needs.adhd}
-                onChange={(value) => updateNeed('adhd', value)}
+                onChange={(value) => handleNeed('adhd', value)}
                 color="primary"
               />
               <NeedToggle
                 label="TEA (Autismo)"
                 description="Interface mais previsível e estruturada"
                 checked={preferences.needs.autism}
-                onChange={(value) => updateNeed('autism', value)}
+                onChange={(value) => handleNeed('autism', value)}
                 color="accent"
               />
               <NeedToggle
                 label="Ansiedade"
                 description="Elementos calmantes e menos pressão"
                 checked={preferences.needs.anxiety}
-                onChange={(value) => updateNeed('anxiety', value)}
+                onChange={(value) => handleNeed('anxiety', value)}
                 color="primary"
               />
               <NeedToggle
                 label="Dislexia"
                 description="Melhor espaçamento e tipografia adaptada"
                 checked={preferences.needs.dyslexia}
-                onChange={(value) => updateNeed('dyslexia', value)}
+                onChange={(value) => handleNeed('dyslexia', value)}
                 color="accent"
               />
             </div>
@@ -206,7 +168,7 @@ export function ProfilePage() {
               label="Iniciar sempre em Modo Foco"
               description="A plataforma abrirá mostrando apenas o essencial"
               defaultChecked={preferences.focusModeDefault}
-              onChange={(value) => updatePreference('focusModeDefault', value)}
+              onChange={(value) => handleUpdate('focusModeDefault', value)}
             />
 
             <div className="h-px bg-border" />
@@ -218,7 +180,7 @@ export function ProfilePage() {
               max={3}
               step={1}
               defaultValue={preferences.complexityLevel}
-              onChange={(value) => updatePreference('complexityLevel', value)}
+              onChange={(value) => handleUpdate('complexityLevel', value)}
               valueLabels={['Mínimo', 'Equilibrado', 'Completo']}
             />
 
@@ -228,7 +190,7 @@ export function ProfilePage() {
               label="Animações Suaves"
               description="Efeitos visuais discretos ao interagir"
               defaultChecked={preferences.animationsEnabled}
-              onChange={(value) => updatePreference('animationsEnabled', value)}
+              onChange={(value) => handleUpdate('animationsEnabled', value)}
             />
           </ProfileSection>
 
@@ -245,7 +207,7 @@ export function ProfilePage() {
               max={3}
               step={1}
               defaultValue={preferences.contrastLevel}
-              onChange={(value) => updatePreference('contrastLevel', value)}
+              onChange={(value) => handleUpdate('contrastLevel', value)}
               valueLabels={['Suave', 'Normal', 'Intenso']}
             />
 
@@ -258,7 +220,7 @@ export function ProfilePage() {
               max={3}
               step={1}
               defaultValue={preferences.spacingLevel}
-              onChange={(value) => updatePreference('spacingLevel', value)}
+              onChange={(value) => handleUpdate('spacingLevel', value)}
               valueLabels={['Compacto', 'Confortável', 'Amplo']}
             />
           </ProfileSection>
@@ -276,7 +238,7 @@ export function ProfilePage() {
               max={24}
               step={2}
               defaultValue={preferences.fontSize}
-              onChange={(value) => updatePreference('fontSize', value)}
+              onChange={(value) => handleUpdate('fontSize', value)}
               valueLabels={['Pequeno', 'Normal', 'Grande', 'Maior', 'Extra']}
             />
 

@@ -14,17 +14,12 @@ import { Toggle } from './Toggle';
 import { ContentPreview } from './ContentPreview';
 import { VisualFeedback } from './VisualFeedback';
 import { Badge } from './Badge';
+import { usePreferences } from '../context/PreferencesContext';
 
 export function CognitivePanel() {
-  // Estados das configurações
-  const [complexity, setComplexity] = useState(2);
-  const [focusMode, setFocusMode] = useState(false);
-  const [summaryMode, setSummaryMode] = useState(false);
-  const [contrast, setContrast] = useState(1);
-  const [spacing, setSpacing] = useState(1);
-  const [fontSize, setFontSize] = useState(18);
-  const [animationsEnabled, setAnimationsEnabled] = useState(true);
-  
+  // Use centralized preferences
+  const { preferences, updatePreference } = usePreferences();
+
   // Feedback visual
   const [feedback, setFeedback] = useState({ show: false, message: '' });
 
@@ -33,38 +28,39 @@ export function CognitivePanel() {
   };
 
   const handleComplexityChange = (value: number) => {
-    setComplexity(value);
+    updatePreference('complexityLevel', value);
     const levels = ['Simples', 'Moderado', 'Completo'];
     showFeedback(`Nível ajustado para ${levels[value - 1]}`);
   };
 
   const handleFocusMode = (enabled: boolean) => {
-    setFocusMode(enabled);
+    updatePreference('focusModeDefault', enabled);
     showFeedback(enabled ? 'Modo Foco ativado ✨' : 'Modo Foco desativado');
   };
 
   const handleSummaryMode = (enabled: boolean) => {
-    setSummaryMode(enabled);
+    // summary visual is mapped to complexityLevel === 1 (simpler)
+    updatePreference('complexityLevel', enabled ? 1 : Math.max(2, preferences.complexityLevel));
     showFeedback(enabled ? 'Mostrando resumos' : 'Mostrando detalhes');
   };
 
   const handleContrastChange = (value: number) => {
-    setContrast(value);
+    updatePreference('contrastLevel', value);
     showFeedback('Contraste ajustado');
   };
 
   const handleSpacingChange = (value: number) => {
-    setSpacing(value);
+    updatePreference('spacingLevel', value);
     showFeedback('Espaçamento ajustado');
   };
 
   const handleFontSizeChange = (value: number) => {
-    setFontSize(value);
+    updatePreference('fontSize', value);
     showFeedback('Tamanho do texto ajustado');
   };
 
   const handleAnimations = (enabled: boolean) => {
-    setAnimationsEnabled(enabled);
+    updatePreference('animationsEnabled', enabled);
     showFeedback(enabled ? 'Animações ativadas' : 'Animações desativadas');
   };
 
@@ -92,17 +88,17 @@ export function CognitivePanel() {
           
           {/* Status Badges */}
           <div className="mb-8 flex flex-wrap gap-3">
-            {focusMode && (
+            {preferences.focusModeDefault && (
               <Badge variant="accent" icon={Focus}>
                 Modo Foco Ativo
               </Badge>
             )}
-            {summaryMode && (
+            {preferences.complexityLevel === 1 && (
               <Badge variant="primary" icon={FileText}>
                 Resumos
               </Badge>
             )}
-            {!animationsEnabled && (
+            {!preferences.animationsEnabled && (
               <Badge variant="neutral" icon={Zap}>
                 Animações Desativadas
               </Badge>
@@ -119,14 +115,14 @@ export function CognitivePanel() {
                 icon={Sliders}
                 title="Nível de Informação"
                 description="Controle quanto você vê de cada vez"
-                highlight={complexity === 1}
+                highlight={preferences.complexityLevel === 1}
               >
                 <Slider
                   label="Complexidade"
                   min={1}
                   max={3}
                   step={1}
-                  defaultValue={complexity}
+                  defaultValue={preferences.complexityLevel}
                   onChange={handleComplexityChange}
                   valueLabels={['Simples', 'Moderado', 'Completo']}
                 />
@@ -137,19 +133,19 @@ export function CognitivePanel() {
                 icon={Focus}
                 title="Modos de Visualização"
                 description="Simplifique sua experiência"
-                highlight={focusMode || summaryMode}
+                highlight={preferences.focusModeDefault || preferences.complexityLevel === 1}
               >
                 <Toggle
                   label="Modo Foco"
                   description="Mostra apenas o essencial"
-                  defaultChecked={focusMode}
+                  defaultChecked={preferences.focusModeDefault}
                   onChange={handleFocusMode}
                 />
                 <div className="h-px bg-border my-4" />
                 <Toggle
                   label="Modo Resumo"
                   description="Informações diretas e curtas"
-                  defaultChecked={summaryMode}
+                  defaultChecked={preferences.complexityLevel === 1}
                   onChange={handleSummaryMode}
                 />
               </SettingsCard>
@@ -166,7 +162,7 @@ export function CognitivePanel() {
                   min={1}
                   max={3}
                   step={1}
-                  defaultValue={contrast}
+                  defaultValue={preferences.contrastLevel}
                   onChange={handleContrastChange}
                   valueLabels={['Suave', 'Normal', 'Alto']}
                 />
@@ -179,7 +175,7 @@ export function CognitivePanel() {
                   min={1}
                   max={3}
                   step={1}
-                  defaultValue={spacing}
+                  defaultValue={preferences.spacingLevel}
                   onChange={handleSpacingChange}
                   valueLabels={['Compacto', 'Normal', 'Amplo']}
                 />
@@ -192,7 +188,7 @@ export function CognitivePanel() {
                   min={16}
                   max={22}
                   step={2}
-                  defaultValue={fontSize}
+                  defaultValue={preferences.fontSize}
                   onChange={handleFontSizeChange}
                   valueLabels={['Pequeno', 'Normal', 'Grande', 'Maior']}
                 />
@@ -207,7 +203,7 @@ export function CognitivePanel() {
                 <Toggle
                   label="Animações Suaves"
                   description="Efeitos visuais discretos"
-                  defaultChecked={animationsEnabled}
+                  defaultChecked={preferences.animationsEnabled}
                   onChange={handleAnimations}
                 />
               </SettingsCard>
@@ -233,9 +229,9 @@ export function CognitivePanel() {
                 </p>
 
                 <ContentPreview
-                  complexity={complexity}
-                  summaryMode={summaryMode}
-                  focusMode={focusMode}
+                  complexity={preferences.complexityLevel}
+                  summaryMode={preferences.complexityLevel === 1}
+                  focusMode={preferences.focusModeDefault}
                 />
               </div>
 
