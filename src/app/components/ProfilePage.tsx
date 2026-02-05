@@ -253,7 +253,7 @@ export function ProfilePage() {
           {/* Motivação */}
           <div className="
             p-8 rounded-[var(--radius-xl)]
-            bg-gradient-to-br from-primary-light to-accent-light
+            bg-primary-light
             border-2 border-primary/20
             shadow-[var(--shadow-md)]
           ">

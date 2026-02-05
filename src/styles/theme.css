@@ -21,13 +21,13 @@
     Opacity helpers now use color-mix() so hex values can be author-friendly. */
   --primary-foreground: #FFFFFF;
   --primary-hover: #4A6A85;
-  --primary-light: #E8EDF2;
+  --primary-light: #e1ebf4;
   
   /* Roxo claro - acento */
   --accent: #9B8FB5;
   --accent-foreground: #FFFFFF;
   --accent-hover: #8A7FA4;
-  --accent-light: #F0EEF5;
+  --accent-light: #e5def2;
   
   /* Tons neutros */
   --muted: #E5E8EC;
@@ -259,14 +259,15 @@
 :root:not(.dark)[data-mindease-contrast='1'] {
   /* Light - Suave */
   --background: #FBFBFD;
-  --foreground: #444a52;
+  --foreground: #86878c;
   --card: #FFFFFF;
   --card-foreground: #778291;
   --muted: #F1F5F9;
-  --muted-foreground: #6B7280;
+  --muted-foreground: #909297;
   --border: #E6E9EE;
-  --primary: #9eb8cf;
+  --primary: #9eb7cd;
   --accent: #c6bfd7;
+  --accent-light: #efecf5;
 }
 .dark[data-mindease-contrast='1'] {
   /* Dark - Suave (muted foreground for lower perceived contrast) */
@@ -304,10 +305,10 @@
 :root:not(.dark)[data-mindease-contrast='3'] {
   /* Light - Alto contraste (claro) */
   --background: #FFFFFF;
-  --foreground: #071428;
+  --foreground: #0e182a;
   --card: #FFFFFF;
   --card-foreground: #071428;
-  --muted: #EEF6FB;
+  --muted: #a7abae;
   --muted-foreground: #1F2937;
   --border: #0F1724;
   --primary: #0F1724;
@@ -315,6 +316,11 @@
   --accent: #0F1724;
   --accent-light: #FFFFFF;
   --success: #000000;
+  /* In high contrast, make "soft" mix variables fully saturated so borders
+     using helpers like border-accent/30 are equally saturated. */
+  --accent-30: var(--accent);
+  --accent-20: var(--accent);
+  --primary-30: var(--primary);
 }
 .dark[data-mindease-contrast='3'] {
   /* Dark - Alto contraste (escuro) */
@@ -327,6 +333,10 @@
   --border: #94A3B8;
   --primary: #9FB8D0;
   --color-primary-rgb: 159,184,208;
+  /* Ensure "soft" helpers map to full color in high contrast dark mode too */
+  --accent-30: var(--accent);
+  --accent-20: var(--accent);
+  --primary-30: var(--primary);
 }
 
 :root[data-mindease-spacing='1'] {

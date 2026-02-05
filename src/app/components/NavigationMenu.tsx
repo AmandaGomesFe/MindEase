@@ -216,7 +216,7 @@ export function NavigationMenu({ currentView, onViewChange }: NavigationMenuProp
           ))}
         </div>
 
-        <div className="mt-8 p-4 rounded-[var(--radius-lg)] bg-gradient-to-br from-primary-light to-accent-light border-2 border-primary/20">
+        <div className="mt-8 p-4 rounded-[var(--radius-lg)] bg-primary-light border-2 border-primary/20">
           <p className="text-sm text-primary leading-relaxed">
             💡 <strong>Dica:</strong> Use o menu sempre que precisar. Não há pressa.
           </p>
