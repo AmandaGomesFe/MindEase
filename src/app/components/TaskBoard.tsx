@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { ListTodo, PlayCircle, CheckCircle2, Sparkles } from 'lucide-react';
+import { ListTodo, PlayCircle, CheckCircle2, Sparkles, Plus } from 'lucide-react';
 import { Task } from './TaskCard';
 import { TaskColumn } from './TaskColumn';
 import { FocusTimer } from './FocusTimer';
 import { VisualFeedback } from './VisualFeedback';
 import { Badge } from './Badge';
+import { CreateTaskModal } from './CreateTaskModal';
 
 export function TaskBoard() {
   const [tasks, setTasks] = useState<Task[]>([
@@ -53,6 +54,7 @@ export function TaskBoard() {
 
   const [activeTimer, setActiveTimer] = useState<string | null>(null);
   const [feedback, setFeedback] = useState({ show: false, message: '' });
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const showFeedback = (message: string) => {
     setFeedback({ show: true, message });
@@ -100,6 +102,18 @@ export function TaskBoard() {
     showFeedback('Sessão de foco completa! Muito bem! 🌟');
   };
 
+  const handleCreateTask = (title: string, description: string, checklist: Task['checklist']) => {
+    const newTask: Task = {
+      id: Date.now().toString(),
+      title,
+      description,
+      status: 'todo',
+      checklist
+    };
+    setTasks([newTask, ...tasks]);
+    showFeedback('Nova tarefa criada! 🎯');
+  };
+
   const todoTasks = tasks.filter(t => t.status === 'todo');
   const inProgressTasks = tasks.filter(t => t.status === 'inProgress');
   const doneTasks = tasks.filter(t => t.status === 'done');
@@ -136,6 +150,22 @@ export function TaskBoard() {
                   {inProgressTasks.length} em andamento
                 </Badge>
               )}
+            </div>
+
+            <div className="flex flex-wrap gap-3 items-center">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="
+                  px-5 py-3 rounded-[var(--radius-md)]
+                  bg-primary text-white
+                  hover:bg-primary/90 transition-colors
+                  flex items-center gap-2 font-medium
+                  shadow-sm hover:shadow-md
+                "
+              >
+                <Plus className="w-5 h-5" />
+                Nova Tarefa
+              </button>
             </div>
           </div>
         </div>
@@ -211,6 +241,14 @@ export function TaskBoard() {
           </div>
         </div>
       </main>
+
+      {/* Create Task Modal */}
+      {showCreateModal && (
+        <CreateTaskModal
+          onClose={() => setShowCreateModal(false)}
+          onSubmit={handleCreateTask}
+        />
+      )}
 
       {/* Focus Timer Modal */}
       {activeTimer && activeTask && (
