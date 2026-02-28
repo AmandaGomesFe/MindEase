@@ -8,14 +8,14 @@ import { LocalStorageTaskRepository } from '../repositories/LocalStorageTaskRepo
 import { LocalStorageUserPreferencesRepository } from '../repositories/LocalStorageUserPreferencesRepository';
 import { LocalStorageFocusSessionRepository } from '../repositories/LocalStorageFocusSessionRepository';
 
-import { CreateTaskUseCase } from '../../application/usecases/CreateTaskUseCase';
-import { UpdateTaskUseCase } from '../../application/usecases/UpdateTaskUseCase';
-import { MoveTaskUseCase } from '../../application/usecases/MoveTaskUseCase';
-import { ToggleChecklistItemUseCase } from '../../application/usecases/ToggleChecklistItemUseCase';
-import { DeleteTaskUseCase } from '../../application/usecases/DeleteTaskUseCase';
-import { ListTasksUseCase } from '../../application/usecases/ListTasksUseCase';
-import { ManageUserPreferencesUseCase } from '../../application/usecases/ManageUserPreferencesUseCase';
-import { ManageFocusSessionUseCase } from '../../application/usecases/ManageFocusSessionUseCase';
+import { CreateTaskUseCase } from '../../app/usecases/CreateTaskUseCase';
+import { UpdateTaskUseCase } from '../../app/usecases/UpdateTaskUseCase';
+import { MoveTaskUseCase } from '../../app/usecases/MoveTaskUseCase';
+import { ToggleChecklistItemUseCase } from '../../app/usecases/ToggleChecklistItemUseCase';
+import { DeleteTaskUseCase } from '../../app/usecases/DeleteTaskUseCase';
+import { ListTasksUseCase } from '../../app/usecases/ListTasksUseCase';
+import { ManageUserPreferencesUseCase } from '../../app/usecases/ManageUserPreferencesUseCase';
+import { ManageFocusSessionUseCase } from '../../app/usecases/ManageFocusSessionUseCase';
 
 /**
  * Container para gerenciar todas as dependências da aplicação
