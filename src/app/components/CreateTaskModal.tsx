@@ -10,12 +10,20 @@ interface ChecklistItem {
 interface CreateTaskModalProps {
   onClose: () => void;
   onSubmit: (title: string, description: string, checklist: ChecklistItem[]) => void;
+  editTask?: {
+    id: string;
+    title: string;
+    description: string;
+    checklist: ChecklistItem[];
+  } | null;
 }
 
-export function CreateTaskModal({ onClose, onSubmit }: CreateTaskModalProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [checklistItems, setChecklistItems] = useState<string[]>(['']);
+export function CreateTaskModal({ onClose, onSubmit, editTask = null }: CreateTaskModalProps) {
+  const [title, setTitle] = useState(editTask?.title || '');
+  const [description, setDescription] = useState(editTask?.description || '');
+  const [checklistItems, setChecklistItems] = useState<string[]>(
+    editTask?.checklist.length ? editTask.checklist.map(item => item.text) : ['']
+  );
 
   const handleAddChecklistItem = () => {
     setChecklistItems([...checklistItems, '']);
@@ -36,14 +44,21 @@ export function CreateTaskModal({ onClose, onSubmit }: CreateTaskModalProps) {
     
     if (!title.trim()) return;
 
-    // Filter out empty checklist items and convert to proper format
     const checklist: ChecklistItem[] = checklistItems
       .filter(item => item.trim() !== '')
-      .map((text, index) => ({
-        id: `${Date.now()}-${index}`,
-        text,
-        completed: false
-      }));
+      .map((text, index) => {
+        if (editTask?.checklist[index]) {
+          return {
+            ...editTask.checklist[index],
+            text
+          };
+        }
+        return {
+          id: `${Date.now()}-${index}`,
+          text,
+          completed: false
+        };
+      });
 
     onSubmit(title, description, checklist);
     onClose();
@@ -57,7 +72,9 @@ export function CreateTaskModal({ onClose, onSubmit }: CreateTaskModalProps) {
       >
         {/* Header */}
         <div className="px-6 py-5 border-b-2 border-border flex items-center justify-between">
-          <h2 className="text-xl font-medium text-foreground">Nova Tarefa</h2>
+          <h2 className="text-xl font-medium text-foreground">
+            {editTask ? 'Editar Tarefa' : 'Nova Tarefa'}
+          </h2>
           <button
             onClick={onClose}
             className="w-10 h-10 rounded-[var(--radius-md)] hover:bg-muted flex items-center justify-center transition-colors"
@@ -191,7 +208,7 @@ export function CreateTaskModal({ onClose, onSubmit }: CreateTaskModalProps) {
                 transition-colors font-medium
               "
             >
-              Criar Tarefa
+              {editTask ? 'Salvar Alterações' : 'Criar Tarefa'}
             </button>
           </div>
         </form>

@@ -11,6 +11,8 @@ interface TaskColumnProps {
   onMoveRight?: (taskId: string) => void;
   onStartFocus: (taskId: string) => void;
   onToggleCheckItem: (taskId: string, checkItemId: string) => void;
+  onEditTask?: (taskId: string) => void;
+  onDeleteTask?: (taskId: string) => void;
   showMoveLeft?: boolean;
   showMoveRight?: boolean;
   maxVisible?: number;
@@ -25,6 +27,8 @@ export function TaskColumn({
   onMoveRight,
   onStartFocus,
   onToggleCheckItem,
+  onEditTask,
+  onDeleteTask,
   showMoveLeft = false,
   showMoveRight = false,
   maxVisible = 3
@@ -86,6 +90,8 @@ export function TaskColumn({
                 onMoveRight={onMoveRight ? () => onMoveRight(task.id) : undefined}
                 onStartFocus={() => onStartFocus(task.id)}
                 onToggleCheckItem={(checkItemId) => onToggleCheckItem(task.id, checkItemId)}
+                onEditTask={onEditTask ? () => onEditTask(task.id) : undefined}
+                onDeleteTask={onDeleteTask ? () => onDeleteTask(task.id) : undefined}
                 showMoveLeft={showMoveLeft}
                 showMoveRight={showMoveRight}
               />

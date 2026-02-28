@@ -42,6 +42,8 @@
   --warning-foreground: #FFFFFF;
   --error: #D97B89;
   --error-foreground: #FFFFFF;
+  --destructive: #D4183D;
+  --destructive-foreground: #FFFFFF;
   
   /* Bordas e inputs */
   --border: #D1D5DB;
@@ -123,6 +125,8 @@
   --warning-foreground: #1F2937;
   --error: #E599A6;
   --error-foreground: #1F2937;
+  --destructive: #D4183D;
+  --destructive-foreground: #FFFFFF;
   
   --border: #4B5563;
   --input: #374151;
@@ -160,6 +164,8 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-error: var(--error);
   --color-error-foreground: var(--error-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-input-background: var(--input-background);
@@ -457,6 +463,7 @@ body {
 
 .bg-secondary\/50 { background-color: var(--secondary-50) !important; }
 .bg-background\/80 { background-color: var(--background-80) !important; }
+
 
 /* Common white/black opacity helpers */
 .bg-white { background-color: #FFFFFF !important; }

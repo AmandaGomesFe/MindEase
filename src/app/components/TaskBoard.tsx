@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { ListTodo, PlayCircle, CheckCircle2, Sparkles, Plus } from 'lucide-react';
+import { ListTodo, PlayCircle, CheckCircle2, Sparkles, Plus, Settings } from 'lucide-react';
 import { Task } from './TaskCard';
 import { TaskColumn } from './TaskColumn';
 import { FocusTimer } from './FocusTimer';
 import { VisualFeedback } from './VisualFeedback';
 import { Badge } from './Badge';
 import { CreateTaskModal } from './CreateTaskModal';
+import { ConfirmDialog } from './ConfirmDialog';
+import { ActivityTransition, TransitionType } from './ActivityTransition';
+import { SettingsPanel } from './SettingsPanel';
 
 export function TaskBoard() {
   const [tasks, setTasks] = useState<Task[]>([
@@ -55,35 +58,75 @@ export function TaskBoard() {
   const [activeTimer, setActiveTimer] = useState<string | null>(null);
   const [feedback, setFeedback] = useState({ show: false, message: '' });
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<(Task & { description: string }) | null>(null);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
+  const [transition, setTransition] = useState<{
+    show: boolean;
+    type: any; // TODO: Define TransitionType
+    taskTitle?: string;
+  }>({ show: false, type: 'task-created' });
+  const [showSettings, setShowSettings] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('transitions-sound-enabled');
+    return saved === null ? true : saved === 'true';
+  });
 
   const showFeedback = (message: string) => {
     setFeedback({ show: true, message });
   };
 
+  const showTransition = (type: any, taskTitle?: string) => {
+    setTransition({ show: true, type, taskTitle });
+  };
+
+  const toggleSound = () => {
+    const newValue = !soundEnabled;
+    setSoundEnabled(newValue);
+    localStorage.setItem('transitions-sound-enabled', newValue.toString());
+  };
+
   const moveTask = (taskId: string, newStatus: Task['status']) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
+    const task = tasks.find(t => t.id === taskId);
+    
+    setTasks(tasks.map(t => 
+      t.id === taskId ? { ...t, status: newStatus } : t
     ));
 
-    const messages = {
-      todo: 'Tarefa movida para A Fazer',
-      inProgress: 'Ótimo! Vamos começar? 💪',
-      done: 'Parabéns! Tarefa concluída! 🎉'
-    };
-    showFeedback(messages[newStatus]);
+    // Determine transition type based on status change
+    if (task) {
+      const oldStatus = task.status;
+      let transitionType: any;
+
+      if (newStatus === 'inProgress' && oldStatus === 'todo') {
+        transitionType = 'move-to-progress';
+      } else if (newStatus === 'done') {
+        transitionType = 'move-to-done';
+      } else if (newStatus === 'todo') {
+        transitionType = 'move-back-to-todo';
+      } else if (newStatus === 'inProgress' && oldStatus === 'done') {
+        transitionType = 'move-back-to-progress';
+      } else {
+        transitionType = 'move-to-progress';
+      }
+
+      showTransition(transitionType, task.title);
+    }
   };
 
   const toggleCheckItem = (taskId: string, checkItemId: string) => {
-    setTasks(tasks.map(task => {
-      if (task.id === taskId) {
-        const updatedChecklist = task.checklist.map(item =>
+    const task = tasks.find(t => t.id === taskId);
+    
+    setTasks(tasks.map(t => {
+      if (t.id === taskId) {
+        const updatedChecklist = t.checklist.map((item: Task['checklist'][0]) =>
           item.id === checkItemId ? { ...item, completed: !item.completed } : item
         );
-        return { ...task, checklist: updatedChecklist };
+        return { ...t, checklist: updatedChecklist };
       }
-      return task;
+      return t;
     }));
-    showFeedback('Progresso atualizado ✓');
+    
+    showTransition('checklist-updated', task?.title);
   };
 
   const startFocus = (taskId: string) => {
@@ -99,7 +142,7 @@ export function TaskBoard() {
       }
     }
     setActiveTimer(null);
-    showFeedback('Sessão de foco completa! Muito bem! 🌟');
+    showTransition('focus-complete');
   };
 
   const handleCreateTask = (title: string, description: string, checklist: Task['checklist']) => {
@@ -111,7 +154,46 @@ export function TaskBoard() {
       checklist
     };
     setTasks([newTask, ...tasks]);
-    showFeedback('Nova tarefa criada! 🎯');
+    showTransition('task-created', title);
+  };
+
+  const handleEditTask = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      setEditingTask({
+        ...task,
+        description: task.description || ''
+      });
+    }
+  };
+
+  const handleUpdateTask = (title: string, description: string, checklist: Task['checklist']) => {
+    if (!editingTask) return;
+    
+    setTasks(tasks.map(task =>
+      task.id === editingTask.id
+        ? { ...task, title, description, checklist }
+        : task
+    ));
+    setEditingTask(null);
+    showTransition('task-updated', title);
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setDeletingTaskId(taskId);
+  };
+
+  const confirmDelete = () => {
+    if (deletingTaskId) {
+      const task = tasks.find(t => t.id === deletingTaskId);
+      setTasks(tasks.filter(task => task.id !== deletingTaskId));
+      showTransition('task-deleted', task?.title);
+      setDeletingTaskId(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeletingTaskId(null);
   };
 
   const todoTasks = tasks.filter(t => t.status === 'todo');
@@ -141,17 +223,6 @@ export function TaskBoard() {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <Badge variant="success" icon={CheckCircle2} size="large">
-                {totalCompleted} {totalCompleted === 1 ? 'concluída' : 'concluídas'}
-              </Badge>
-              {inProgressTasks.length > 0 && (
-                <Badge variant="accent" icon={PlayCircle} size="large">
-                  {inProgressTasks.length} em andamento
-                </Badge>
-              )}
-            </div>
-
             <div className="flex flex-wrap gap-3 items-center">
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -166,6 +237,15 @@ export function TaskBoard() {
                 <Plus className="w-5 h-5" />
                 Nova Tarefa
               </button>
+              
+              <Badge variant="success" icon={CheckCircle2} size="large">
+                {totalCompleted} {totalCompleted === 1 ? 'concluída' : 'concluídas'}
+              </Badge>
+              {inProgressTasks.length > 0 && (
+                <Badge variant="accent" icon={PlayCircle} size="large">
+                  {inProgressTasks.length} em andamento
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -204,9 +284,11 @@ export function TaskBoard() {
               icon={ListTodo}
               tasks={todoTasks}
               color="neutral"
-              onMoveRight={(id) => moveTask(id, 'inProgress')}
+              onMoveRight={(id: string) => moveTask(id, 'inProgress')}
               onStartFocus={startFocus}
               onToggleCheckItem={toggleCheckItem}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
               showMoveRight={true}
               maxVisible={3}
             />
@@ -217,10 +299,12 @@ export function TaskBoard() {
               icon={PlayCircle}
               tasks={inProgressTasks}
               color="primary"
-              onMoveLeft={(id) => moveTask(id, 'todo')}
-              onMoveRight={(id) => moveTask(id, 'done')}
+              onMoveLeft={(id: string) => moveTask(id, 'todo')}
+              onMoveRight={(id: string) => moveTask(id, 'done')}
               onStartFocus={startFocus}
               onToggleCheckItem={toggleCheckItem}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
               showMoveLeft={true}
               showMoveRight={true}
               maxVisible={3}
@@ -232,9 +316,11 @@ export function TaskBoard() {
               icon={CheckCircle2}
               tasks={doneTasks}
               color="success"
-              onMoveLeft={(id) => moveTask(id, 'inProgress')}
+              onMoveLeft={(id: string) => moveTask(id, 'inProgress')}
               onStartFocus={startFocus}
               onToggleCheckItem={toggleCheckItem}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
               showMoveLeft={true}
               maxVisible={3}
             />
@@ -247,6 +333,28 @@ export function TaskBoard() {
         <CreateTaskModal
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateTask}
+        />
+      )}
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <CreateTaskModal
+          onClose={() => setEditingTask(null)}
+          onSubmit={handleUpdateTask}
+          editTask={editingTask}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deletingTaskId && (
+        <ConfirmDialog
+          title="Excluir Tarefa"
+          message="Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita."
+          confirmText="Excluir"
+          cancelText="Cancelar"
+          variant="danger"
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
         />
       )}
 
@@ -265,6 +373,42 @@ export function TaskBoard() {
         show={feedback.show}
         onHide={() => setFeedback({ show: false, message: '' })}
       />
+
+      {/* Activity Transition */}
+      {/* TODO: Implement ActivityTransition component */}
+      <ActivityTransition
+        show={transition.show}
+        type={transition.type}
+        taskTitle={transition.taskTitle}
+        onHide={() => setTransition({ show: false, type: 'task-created' })}
+      />
+
+      {/* Settings Panel */}
+      {showSettings && (
+        <SettingsPanel
+          show={showSettings}
+          onClose={() => setShowSettings(false)}
+          soundEnabled={soundEnabled}
+          onToggleSound={toggleSound}
+        />
+      )}
+
+      {/* Settings Button */}
+      <button
+        onClick={() => setShowSettings(true)}
+        className="
+          fixed bottom-6 right-6
+          w-14 h-14 rounded-full
+          bg-primary text-white
+          hover:bg-primary/90 transition-all
+          flex items-center justify-center
+          shadow-lg hover:shadow-xl
+          z-40
+        "
+        aria-label="Configurações"
+      >
+        <Settings className="w-6 h-6" />
+      </button>
     </div>
   );
 }
