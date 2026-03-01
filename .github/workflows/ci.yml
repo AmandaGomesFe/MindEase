@@ -3,6 +3,8 @@ name: CI
 on:
   pull_request:
     branches: [ main ]
+  push:
+    branches: [ main ]
 
 jobs:
   lint:
@@ -79,16 +81,20 @@ jobs:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
     needs: [build]
+    # Only run production deploys on direct pushes to `main`. Pull requests
+    # should not trigger production deployments (Vercel preview deployments
+    # will still be created by the Vercel GitHub integration if enabled).
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Check Vercel secret
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.MINDEASE }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
-            echo "ERROR: VERCEL_TOKEN not set — set repository secret VERCEL_TOKEN to enable deploys"
+            echo "ERROR: VERCEL_TOKEN (secrets.MINDEASE) not set — set repository secret MINDEASE to enable deploys"
             exit 1
           fi
 
@@ -99,15 +105,29 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+      - name: Vercel token identity (debug)
+        env:
+          VERCEL_TOKEN: ${{ secrets.MINDEASE }}
+        run: |
+          echo "== Vercel token owner =="
+          # Print which account/team the token belongs to. Helps debug permission issues.
+          npx vercel whoami --token "$VERCEL_TOKEN" || true
+
+      - name: Show git commit author (debug)
+        run: |
+          echo "== Last commit info =="
+          git --no-pager log -1 --pretty=format:'%H %an <%ae>' || true
+          echo
 
       - name: Deploy to Vercel (production)
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.MINDEASE }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           # This uses the Vercel CLI to deploy to production. It requires the
           # VERCEL_TOKEN secret to be set in repository secrets. Optionally set
           # VERCEL_ORG_ID for scope.
-          npx vercel --prod --confirm --token $VERCEL_TOKEN ${VERCEL_ORG_ID:+--scope $VERCEL_ORG_ID}
+          # Use --yes instead of deprecated --confirm and pass the token explicitly.
+          npx vercel --prod --yes --token "$VERCEL_TOKEN" ${VERCEL_ORG_ID:+--scope $VERCEL_ORG_ID}
 
