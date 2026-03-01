@@ -79,11 +79,18 @@ jobs:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
     needs: [build]
-    # only run deploy if VERCEL_TOKEN is configured in repo secrets
-    if: ${{ secrets.VERCEL_TOKEN != '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Check Vercel secret
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "ERROR: VERCEL_TOKEN not set — set repository secret VERCEL_TOKEN to enable deploys"
+            exit 1
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -99,9 +106,8 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          # If you prefer the Vercel Action, replace this with an action step.
           # This uses the Vercel CLI to deploy to production. It requires the
           # VERCEL_TOKEN secret to be set in repository secrets. Optionally set
-          # VERCEL_ORG_ID and VERCEL_PROJECT_ID for scope.
+          # VERCEL_ORG_ID for scope.
           npx vercel --prod --confirm --token $VERCEL_TOKEN ${VERCEL_ORG_ID:+--scope $VERCEL_ORG_ID}
 
