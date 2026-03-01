@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { Button } from './Button';
+import { Button } from '../Button';
 import type { LucideIcon } from 'lucide-react';
 
 // Provide a dummy SVG icon that matches the `LucideIcon` type expected by the
