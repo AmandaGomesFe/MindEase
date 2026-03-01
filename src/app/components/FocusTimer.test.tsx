@@ -5,7 +5,6 @@ import { FocusTimer } from './FocusTimer';
 
 describe('FocusTimer', () => {
   beforeEach(() => {
-    // Clear localStorage before each test
     localStorage.removeItem('focus-timer-sound');
     // Mock Notification so component doesn't try to request permission during tests
     // Provide a minimal mock if not present
