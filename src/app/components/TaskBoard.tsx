@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { container } from '../../infrastructure/di/container';
 import { ListTodo, PlayCircle, CheckCircle2, Sparkles, Plus, Settings } from 'lucide-react';
 import { Task } from './TaskCard';
 import { TaskColumn } from './TaskColumn';
@@ -75,6 +76,19 @@ export function TaskBoard() {
     setFeedback({ show: true, message });
   };
 
+  // Load tasks from repository on mount
+  useEffect(() => {
+    let mounted = true;
+    container.listTasksUseCase.execute()
+      .then((list) => {
+        if (mounted) setTasks(list);
+      })
+      .catch((err) => {
+        console.error('Failed to load tasks:', err);
+      });
+    return () => { mounted = false; };
+  }, []);
+
   const showTransition = (type: any, taskTitle?: string) => {
     setTransition({ show: true, type, taskTitle });
   };
@@ -85,15 +99,14 @@ export function TaskBoard() {
     localStorage.setItem('transitions-sound-enabled', newValue.toString());
   };
 
-  const moveTask = (taskId: string, newStatus: Task['status']) => {
+  const moveTask = async (taskId: string, newStatus: Task['status']) => {
     const task = tasks.find(t => t.id === taskId);
-    
-    setTasks(tasks.map(t => 
-      t.id === taskId ? { ...t, status: newStatus } : t
-    ));
+    if (!task) return;
 
-    // Determine transition type based on status change
-    if (task) {
+    try {
+      const updated = await container.moveTaskUseCase.execute({ id: taskId, newStatus });
+      setTasks(prev => prev.map(t => (t.id === taskId ? updated : t)));
+
       const oldStatus = task.status;
       let transitionType: any;
 
@@ -110,23 +123,24 @@ export function TaskBoard() {
       }
 
       showTransition(transitionType, task.title);
+    } catch (error) {
+      console.error('Failed to move task:', error);
+      showFeedback('Erro ao mover tarefa');
     }
   };
 
-  const toggleCheckItem = (taskId: string, checkItemId: string) => {
+  const toggleCheckItem = async (taskId: string, checkItemId: string) => {
     const task = tasks.find(t => t.id === taskId);
-    
-    setTasks(tasks.map(t => {
-      if (t.id === taskId) {
-        const updatedChecklist = t.checklist.map((item: Task['checklist'][0]) =>
-          item.id === checkItemId ? { ...item, completed: !item.completed } : item
-        );
-        return { ...t, checklist: updatedChecklist };
-      }
-      return t;
-    }));
-    
-    showTransition('checklist-updated', task?.title);
+    if (!task) return;
+
+    try {
+      const updated = await container.toggleChecklistItemUseCase.execute({ taskId, itemId: checkItemId });
+      setTasks(prev => prev.map(t => (t.id === taskId ? updated : t)));
+      showTransition('checklist-updated', task.title);
+    } catch (error) {
+      console.error('Failed to toggle checklist item:', error);
+      showFeedback('Erro ao atualizar checklist');
+    }
   };
 
   const startFocus = (taskId: string) => {
@@ -145,16 +159,19 @@ export function TaskBoard() {
     showTransition('focus-complete');
   };
 
-  const handleCreateTask = (title: string, description: string, checklist: Task['checklist']) => {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title,
-      description,
-      status: 'todo',
-      checklist
-    };
-    setTasks([newTask, ...tasks]);
-    showTransition('task-created', title);
+  const handleCreateTask = async (title: string, description: string, checklist: Task['checklist']) => {
+    try {
+      const newTask = await container.createTaskUseCase.execute({
+        title,
+        description,
+        checklist,
+      });
+      setTasks([newTask, ...tasks]);
+      showTransition('task-created', title);
+    } catch (error) {
+      console.error('Failed to create task:', error);
+      showFeedback('Erro ao criar tarefa');
+    }
   };
 
   const handleEditTask = (taskId: string) => {
@@ -167,28 +184,41 @@ export function TaskBoard() {
     }
   };
 
-  const handleUpdateTask = (title: string, description: string, checklist: Task['checklist']) => {
+  const handleUpdateTask = async (title: string, description: string, checklist: Task['checklist']) => {
     if (!editingTask) return;
-    
-    setTasks(tasks.map(task =>
-      task.id === editingTask.id
-        ? { ...task, title, description, checklist }
-        : task
-    ));
-    setEditingTask(null);
-    showTransition('task-updated', title);
+
+    try {
+      const updated = await container.updateTaskUseCase.execute({
+        id: editingTask.id,
+        title,
+        description,
+        checklist,
+      });
+      setTasks(prev => prev.map(task => (task.id === editingTask.id ? updated : task)));
+      setEditingTask(null);
+      showTransition('task-updated', title);
+    } catch (error) {
+      console.error('Failed to update task:', error);
+      showFeedback('Erro ao atualizar tarefa');
+    }
   };
 
   const handleDeleteTask = (taskId: string) => {
     setDeletingTaskId(taskId);
   };
 
-  const confirmDelete = () => {
-    if (deletingTaskId) {
+  const confirmDelete = async () => {
+    if (!deletingTaskId) return;
+
+    try {
       const task = tasks.find(t => t.id === deletingTaskId);
-      setTasks(tasks.filter(task => task.id !== deletingTaskId));
+      await container.deleteTaskUseCase.execute(deletingTaskId);
+      setTasks(prev => prev.filter(task => task.id !== deletingTaskId));
       showTransition('task-deleted', task?.title);
       setDeletingTaskId(null);
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      showFeedback('Erro ao excluir tarefa');
     }
   };
 
