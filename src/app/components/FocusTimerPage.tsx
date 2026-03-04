@@ -124,7 +124,7 @@ export function FocusTimerPage() {
               <div className="w-10 h-10 rounded-[var(--radius-md)] bg-primary flex items-center justify-center">
                 <Clock className="w-5 h-5 text-white" aria-hidden="true" />
               </div>
-              <h1 className="text-xl font-medium text-foreground">
+              <h1 className="text-xl font-medium text-foreground mt-6">
                 {sessionType === 'focus' ? 'Tempo de Foco' : 'Pausa'}
               </h1>
             </div>
@@ -394,9 +394,9 @@ export function FocusTimerPage() {
       {timerState !== 'complete' && (
         <footer className="px-6 py-6 border-t-2 border-border">
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-center justify-center gap-3 text-center">
+            <div className="flex items-center justify-center gap-3 text-center align-items: center">
               <Heart className="w-5 h-5 text-primary shrink-0" aria-hidden="true" />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mt-3">
                 {sessionType === 'focus'
                   ? 'Lembre-se: pequenos períodos de foco são mais eficazes que longos períodos de esforço contínuo'
                   : 'Pausas são importantes. Cuide de você.'

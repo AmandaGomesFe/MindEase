@@ -76,7 +76,7 @@ export function ProfilePage() {
                 <div className="w-12 h-12 rounded-[var(--radius-md)] bg-accent flex items-center justify-center">
                   <User className="w-6 h-6 text-white" aria-hidden="true" />
                 </div>
-                <h1 className="text-2xl font-medium text-foreground">
+                <h1 className="text-2xl font-medium text-foreground  mt-6">
                   Meu Perfil
                 </h1>
               </div>
