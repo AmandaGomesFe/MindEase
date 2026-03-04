@@ -133,12 +133,19 @@ export function TaskBoard() {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
+    const optimistic = {
+      ...task,
+      checklist: task.checklist.map(i => i.id === checkItemId ? { ...i, completed: !i.completed } : i)
+    };
+    setTasks(prev => prev.map(t => (t.id === taskId ? optimistic : t)));
+    showTransition('checklist-updated', task.title);
+
     try {
       const updated = await container.toggleChecklistItemUseCase.execute({ taskId, itemId: checkItemId });
       setTasks(prev => prev.map(t => (t.id === taskId ? updated : t)));
-      showTransition('checklist-updated', task.title);
     } catch (error) {
       console.error('Failed to toggle checklist item:', error);
+      setTasks(prev => prev.map(t => (t.id === taskId ? task : t)));
       showFeedback('Erro ao atualizar checklist');
     }
   };
@@ -160,16 +167,23 @@ export function TaskBoard() {
   };
 
   const handleCreateTask = async (title: string, description: string, checklist: Task['checklist']) => {
+    const tempId = `tmp-${Date.now()}`;
+    const tempTask: Task = {
+      id: tempId,
+      title,
+      description,
+      status: 'todo',
+      checklist: checklist || []
+    };
+    setTasks(prev => [tempTask, ...prev]);
+    showTransition('task-created', title);
+
     try {
-      const newTask = await container.createTaskUseCase.execute({
-        title,
-        description,
-        checklist,
-      });
-      setTasks([newTask, ...tasks]);
-      showTransition('task-created', title);
+      const created = await container.createTaskUseCase.execute({ title, description, checklist });
+      setTasks(prev => prev.map(t => (t.id === tempId ? created : t)));
     } catch (error) {
       console.error('Failed to create task:', error);
+      setTasks(prev => prev.filter(t => t.id !== tempId));
       showFeedback('Erro ao criar tarefa');
     }
   };
@@ -210,14 +224,16 @@ export function TaskBoard() {
   const confirmDelete = async () => {
     if (!deletingTaskId) return;
 
+    const task = tasks.find(t => t.id === deletingTaskId);
+    setTasks(prev => prev.filter(t => t.id !== deletingTaskId));
+    setDeletingTaskId(null);
+
     try {
-      const task = tasks.find(t => t.id === deletingTaskId);
       await container.deleteTaskUseCase.execute(deletingTaskId);
-      setTasks(prev => prev.filter(task => task.id !== deletingTaskId));
       showTransition('task-deleted', task?.title);
-      setDeletingTaskId(null);
     } catch (error) {
       console.error('Failed to delete task:', error);
+      if (task) setTasks(prev => [task, ...prev]);
       showFeedback('Erro ao excluir tarefa');
     }
   };
